@@ -46,8 +46,8 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '15mb' })); // 增加限�
 app.use(cookieParser()); // 解析 Cookie
 app.use(express.static(path.join(__dirname, 'public'))); // 静态文件
 
-// 创建会话目录
-const sessionDir = path.join(__dirname, 'sessions');
+// 创建会话目录 - 支持环境变量配置
+const sessionDir = process.env.SESSION_DIR || path.join(__dirname, 'sessions');
 console.log('会话目录:', sessionDir);
 if (!fs.existsSync(sessionDir)) {
   console.log('创建会话目录...');
@@ -106,7 +106,7 @@ app.get('/login', (req, res) => {
   }
 
   res.render('login', {
-    title: 'HTML-Go | 登录',
+    title: 'HTML 快贴 | 登录',
     error: null
   });
 });
@@ -114,10 +114,33 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { password } = req.body;
 
+  // 支持多个密码
+  const validPasswords = [
+    config.authPassword,  // 从环境变量读取的主密码
+    'kaykay',
+    'linyi',
+    'limmer',
+    'yaoyao',
+    'baidou.work',
+    'mark',
+    'xiongxiong',
+    'ayi',
+    'xiaobie',
+    'bobo',
+    'lingling',
+    'zhaonan',
+    'xiaodao',
+    'jopi',
+    'vivienne',
+    'vivi',
+    'fancy',
+    'jingwen',
+    'xiongkik'
+  ];
+
   console.log('登录尝试:');
   console.log('- 密码:', password);
-  console.log('- 配置密码:', config.authPassword);
-  console.log('- 密码匹配:', password === config.authPassword);
+  console.log('- 密码匹配:', validPasswords.includes(password));
 
   // 如果认证功能未启用，直接重定向到首页
   if (!config.authEnabled) {
@@ -125,8 +148,8 @@ app.post('/login', (req, res) => {
     return res.redirect('/');
   }
 
-  // 检查密码是否正确
-  if (password === config.authPassword) {
+  // 检查密码是否在有效密码列表中
+  if (validPasswords.includes(password)) {
     console.log('- 密码正确，设置认证');
 
     // 同时使用会话和 Cookie 来存储认证状态
@@ -230,7 +253,7 @@ app.get('/validate-password/:id', async (req, res) => {
 
 // 首页路由 - 需要登录才能访问
 app.get('/', isAuthenticated, (req, res) => {
-  res.render('index', { title: 'HTML-Go | 分享 HTML 代码的简单方式' });
+  res.render('index', { title: 'HTML 快贴 | AI 生成内容快速部署成网页' });
 });
 
 // 导入代码类型检测和内容渲染工具
@@ -410,8 +433,8 @@ initDatabase().then(() => {
   console.log(`实际使用端口: ${PORT}`);
   console.log(`日志级别: ${config.logLevel}`);
 
-  app.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
 
     // 添加路由处理器日志
     console.log('已注册的路由:');
